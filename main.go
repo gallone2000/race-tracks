@@ -1,68 +1,63 @@
 package main
 
 import (
+	"assignment/pkg/shortestpath"
 	"fmt"
-	"math"
 )
 
-type Point struct {
-	x, y int
-}
+func main() {
+	var numTestCases int
+	fmt.Print("Enter the number of test cases: ")
+	fmt.Scan(&numTestCases)
 
-func isValid(x, y, X, Y int) bool {
-	return x >= 0 && x < X && y >= 0 && y < Y
-}
-
-func min(a, b int) int {
-	return int(math.Min(float64(a), float64(b)))
-}
-
-func solve(grid [][]bool, start, finish Point) string {
-	X, Y := len(grid), len(grid[0])
-	dirs := []Point{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} // Possible hops
-
-	// Initialize minimum hops array
-	minHops := make([][]int, X)
-	for i := range minHops {
-		minHops[i] = make([]int, Y)
-		for j := range minHops[i] {
-			minHops[i][j] = math.MaxInt32
+	for i := 0; i < numTestCases; i++ {
+		var X, Y int
+		for {
+			fmt.Printf("Enter grid dimensions for test case %d (X Y): ", i+1)
+			fmt.Scan(&X, &Y)
+			if X >= 1 && X <= 30 && Y >= 1 && Y <= 30 {
+				break
+			} else {
+				fmt.Println("Invalid dimensions. Please enter valid values (1 <= X <= 30 and 1 <= Y <= 30).")
+			}
 		}
-	}
 
-	queue := []Point{start}
-	minHops[start.x][start.y] = 0
+		var startX, startY, finishX, finishY int
+		fmt.Printf("Enter start and finish points for test case %d (startX startY finishX finishY): ", i+1)
+		fmt.Scan(&startX, &startY, &finishX, &finishY)
+		start := shortestpath.State{X: startX, Y: startY}
+		finish := shortestpath.State{X: finishX, Y: finishY}
 
-	for len(queue) > 0 {
-		curr := queue[0]
-		queue = queue[1:]
+		var numObstacles int
+		fmt.Printf("Enter the number of obstacles for test case %d: ", i+1)
+		fmt.Scan(&numObstacles)
 
-		for _, dir := range dirs {
-			next := Point{curr.x + dir.x, curr.y + dir.y}
-			if isValid(next.x, next.y, X, Y) && !grid[next.x][next.y] {
-				newHops := minHops[curr.x][curr.y] + 1
-				if newHops < minHops[next.x][next.y] {
-					minHops[next.x][next.y] = newHops
-					queue = append(queue, next)
+		obstacles := make(map[string]bool)
+		for j := 0; j < numObstacles; j++ {
+			var x1, y1, x2, y2 int
+			for {
+				fmt.Printf("Enter obstacle %d coordinates (x1 x2 y1 y2): ", j+1)
+				_, err := fmt.Scan(&x1, &x2, &y1, &y2)
+				o1 := shortestpath.State{X: x1, Y: y1}
+				o2 := shortestpath.State{X: x2, Y: y2}
+				if err != nil || o1 == start || o2 == finish {
+					fmt.Println("Invalid obstacle coordinates. Please enter valid values.")
+				} else {
+					shortestpath.GenerateObstacles(&obstacles, x1, y1, x2, y2)
+					break
 				}
 			}
 		}
-	}
 
-	if minHops[finish.x][finish.y] == math.MaxInt32 {
-		return "No solution."
+		result, err := shortestpath.CalculateShortestPath(start, finish, X, Y, obstacles)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+		} else {
+			if result == -1 {
+				fmt.Println("No solution.")
+			} else {
+				fmt.Printf("Optimal solution for test case %d takes %d hops.\n", i+1, result)
+			}
+		}
 	}
-	return fmt.Sprintf("Optimal solution takes %d hops.", minHops[finish.x][finish.y])
-}
-
-func main() {
-	// Example usage
-	grid := make([][]bool, 5)
-	for i := range grid {
-		grid[i] = make([]bool, 5)
-	}
-	start := Point{4, 0}
-	finish := Point{4, 4}
-	grid[1][1] = true // Add the obstacle
-	fmt.Println(solve(grid, start, finish))
 }
