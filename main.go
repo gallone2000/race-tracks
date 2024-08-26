@@ -32,18 +32,17 @@ func main() {
 		fmt.Printf("Enter the number of obstacles for test case %d: ", i+1)
 		fmt.Scan(&numObstacles)
 
-		obstacles := make(map[string]bool)
+		var obstacles []shortestpath.RawObstacle
 		for j := 0; j < numObstacles; j++ {
 			var x1, y1, x2, y2 int
 			for {
 				fmt.Printf("Enter obstacle %d coordinates (x1 x2 y1 y2): ", j+1)
 				_, err := fmt.Scan(&x1, &x2, &y1, &y2)
-				o1 := shortestpath.State{X: x1, Y: y1}
-				o2 := shortestpath.State{X: x2, Y: y2}
-				if err != nil || o1 == start || o2 == finish {
-					fmt.Println("Invalid obstacle coordinates. Please enter valid values.")
+				if err != nil {
+					fmt.Println("Invalid input. Please enter valid coordinates (x1 x2 y1 y2).")
+					continue
 				} else {
-					shortestpath.GenerateObstacles(&obstacles, x1, y1, x2, y2)
+					obstacles = append(obstacles, shortestpath.RawObstacle{X1: x1, X2: x2, Y1: y1, Y2: y2})
 					break
 				}
 			}

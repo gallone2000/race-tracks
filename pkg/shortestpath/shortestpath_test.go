@@ -8,8 +8,8 @@ func TestBfsWithShortestPath(t *testing.T) {
 	X, Y := 5, 5
 	start := State{X: 4, Y: 0}
 	finish := State{X: 4, Y: 4}
-	obstacles := make(map[string]bool)
-	GenerateObstacles(&obstacles, 1, 2, 4, 3)
+	var obstacles []RawObstacle
+	obstacles = append(obstacles, RawObstacle{1, 4, 2, 3})
 	result, err := CalculateShortestPath(start, finish, X, Y, obstacles)
 	expected := 7
 
@@ -25,8 +25,8 @@ func TestBfsWithGridSizeError(t *testing.T) {
 	X, Y := 31, 31
 	start := State{X: 4, Y: 0}
 	finish := State{X: 4, Y: 4}
-	obstacles := make(map[string]bool)
-	GenerateObstacles(&obstacles, 1, 2, 4, 3)
+	var obstacles []RawObstacle
+	obstacles = append(obstacles, RawObstacle{1, 2, 4, 3})
 	_, err := CalculateShortestPath(start, finish, X, Y, obstacles)
 	if err == nil {
 		t.Error("Expected error, but got nil")
@@ -41,9 +41,9 @@ func TestBfsWithNoShortestPath(t *testing.T) {
 	X, Y := 3, 3
 	start := State{X: 0, Y: 0}
 	finish := State{X: 2, Y: 2}
-	obstacles := make(map[string]bool)
-	GenerateObstacles(&obstacles, 1, 0, 1, 2)
-	GenerateObstacles(&obstacles, 0, 1, 2, 1)
+	var obstacles []RawObstacle
+	obstacles = append(obstacles, RawObstacle{1, 1, 0, 2})
+	obstacles = append(obstacles, RawObstacle{0, 2, 1, 1})
 	result, err := CalculateShortestPath(start, finish, X, Y, obstacles)
 	expected := -1
 
@@ -59,9 +59,9 @@ func TestBfsWithError(t *testing.T) {
 	X, Y := 3, 3
 	start := State{X: 0, Y: 0}
 	finish := State{X: 2, Y: 2}
-	obstacles := make(map[string]bool)
-	GenerateObstacles(&obstacles, 0, 0, 1, 2)
-	GenerateObstacles(&obstacles, 0, 1, 2, 1)
+	var obstacles []RawObstacle
+	obstacles = append(obstacles, RawObstacle{0, 0, 1, 1})
+	obstacles = append(obstacles, RawObstacle{1, 2, 2, 2})
 	result, err := CalculateShortestPath(start, finish, X, Y, obstacles)
 	expected := -1
 
@@ -71,7 +71,24 @@ func TestBfsWithError(t *testing.T) {
 	if result != expected {
 		t.Errorf("Expected %d hops, but got %d", expected, result)
 	}
-	if err.Error() != "invalid obstacles. Start and finish points cannot be obstacles" {
+	if err.Error() != "obstacle coordinates are invalid" {
 		t.Error("Expected error message")
+	}
+}
+
+func TestErrorStartFinish(t *testing.T) {
+	X, Y := 5, 5
+	start := State{X: 5, Y: 0}
+	finish := State{X: 4, Y: 6}
+	var obstacles []RawObstacle
+	obstacles = append(obstacles, RawObstacle{1, 4, 2, 3})
+	_, err := CalculateShortestPath(start, finish, X, Y, obstacles)
+
+	expected := "start and finish coordinates are invalid"
+	if err == nil {
+		t.Error("Expected error, but got nil")
+	}
+	if err.Error() != expected {
+		t.Errorf("Expected %s error, but got %s", expected, err.Error())
 	}
 }
